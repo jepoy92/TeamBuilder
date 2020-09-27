@@ -41,6 +41,9 @@ function askQuestions() {
             case "view all employees":
                 viewEmployees()
                 break;
+            case "view all roles":
+                viewRole()
+                break;
 
             case "view all departments":
                 viewDepartments()
@@ -76,6 +79,17 @@ function viewEmployees() {
     })
 }
 
+function viewRole() {
+    connection.query(
+        "SELECT first_name, last_name, title, salary FROM employee JOIN role ON role_id = role.id",
+        function (err, response) {
+            if (err) throw err;
+            console.table(response);
+            askQuestions();
+        }
+    )
+}
+
 function viewDepartments() {
     connection.query("SELECT * FROM department", function (err, data) {
         console.table(data);
@@ -104,15 +118,15 @@ function addEmployee() {
             name: "managerId",
             message: "What is the employee manager's ID?"
         }
-    ]).then(function(res) {
-        if (res.managerId) {
-        connection.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [res.firstName, res.lastName, res.roleId, res.managerId], function(err, data) {
+    ]).then(function(result) {
+        if (result.managerId) {
+        connection.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [result.firstName, result.lastName, result.roleId, result.managerId], function(err, data) {
             if (err) throw err;
             console.table("Successfully updated!");
             askQuestions();
         })
     } else {
-        connection.query('INSERT INTO employee (first_name, last_name, role_id) VALUES (?, ?, ?)', [res.firstName, res.lastName, res.roleId], function(err, data) {
+        connection.query('INSERT INTO employee (first_name, last_name, role_id) VALUES (?, ?, ?)', [result.firstName, result.lastName, result.roleId], function(err, data) {
             if (err) throw err;
             console.table("Successfully updated!");
             askQuestions();
@@ -126,8 +140,8 @@ function addDepartment() {
         type: "input",
         name: "department",
         message: "What is department do you want to add?"
-    }, ]).then(function(res) {
-        connection.query('INSERT INTO department (name) VALUES (?)', [res.department], function(err, data) {
+    }, ]).then(function(result) {
+        connection.query('INSERT INTO department (name) VALUES (?)', [result.department], function(err, data) {
             if (err) throw err;
             console.table("Successfully updated!");
             askQuestions();
@@ -152,7 +166,7 @@ function addRole() {
         }
     ]).then(function (response) {
         connection.query("INSERT INTO roles (title, salary, department_id) values (?, ?, ?)", [response.title, response.salary, response.department_id], function (err, data) {
-            console.table(data);
+            viewEmployees();
         })
         askQuestions();
     })
@@ -160,21 +174,44 @@ function addRole() {
 }
 
 function updateEmployeeRole() {
-    inquirer.prompt([
-        {
-            message: "which employee would you like to update? (use first name only)",
-            type: "input",
-            name: "name"
-        }, {
-            message: "enter the new role ID:",
-            type: "number",
-            name: "role_id"
-        }
-    ]).then(function (response) {
-        connection.query("UPDATE employee SET role_id = ? WHERE first_name = ?", [response.role_id, response.name], function (err, data) {
-            console.table(data);
-        })
-        askQuestions();
-    })
+    connection.query("SELECT * FROM employee", function(err, response) {
+        if (err) throw err;
+        var updateEmployee = response.map(function(employee) {
+            return employee.first_name + ' ' + employee.last_name
+        });
 
+        inquirer        
+            .prompt([
+                {
+                    type: "list",
+                    message: "Which employee would you like to update?",
+                    name: "employee",
+                    choices: updateEmployee
+                },
+                {
+                    type: 'input',
+                    message: "What is the new role ID for the employee?",
+                    name: "roleId"
+                }
+            ]).then(function(response) {
+                var employeeName = response.employee.split(" ");
+
+                connection.query(`UPDATE employee SET role_id = ${response.role_id} WHERE (first_name = '${employeeName[0]}') AND (last_name = '${employeeName[1]}')`, 
+                    function(err, result) {
+                   if (err) throw err;
+                   viewEmployees();
+                })
+            })
+    })  
+}
+
+function viewRole() {
+    connection.query(
+        "SELECT first_name, last_name, title, salary FROM employee JOIN role ON role_id = role.id",
+        function (err, response) {
+            if (err) throw err;
+            console.table(response);
+            askQuestions();
+        }
+    )
 }
