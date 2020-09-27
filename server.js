@@ -1,3 +1,4 @@
+
 const mysql = require('mysql');
 const inquirer = require("inquirer");
 
@@ -28,6 +29,7 @@ function askQuestions() {
         choices: [
             "view all employees",
             "view all departments",
+            "view all roles",
             "add employee",
             "add department",
             "add role",
@@ -41,12 +43,13 @@ function askQuestions() {
             case "view all employees":
                 viewEmployees()
                 break;
-            case "view all roles":
-                viewRole()
-                break;
 
             case "view all departments":
                 viewDepartments()
+                break;
+            
+            case "view all roles":
+                viewRole()
                 break;
 
             case "add employee":
@@ -79,6 +82,13 @@ function viewEmployees() {
     })
 }
 
+function viewDepartments() {
+    connection.query("SELECT * FROM department", function (err, data) {
+        console.table(data);
+        askQuestions();
+    })
+}
+
 function viewRole() {
     connection.query(
         "SELECT first_name, last_name, title, salary FROM employee JOIN role ON role_id = role.id",
@@ -88,13 +98,6 @@ function viewRole() {
             askQuestions();
         }
     )
-}
-
-function viewDepartments() {
-    connection.query("SELECT * FROM department", function (err, data) {
-        console.table(data);
-        askQuestions();
-    })
 }
 
 function addEmployee() {
@@ -118,15 +121,15 @@ function addEmployee() {
             name: "managerId",
             message: "What is the employee manager's ID?"
         }
-    ]).then(function(result) {
-        if (result.managerId) {
-        connection.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [result.firstName, result.lastName, result.roleId, result.managerId], function(err, data) {
+    ]).then(function(response) {
+        if (response.managerId) {
+        connection.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [response.firstName, response.lastName, response.roleId, response.managerId], function(err, data) {
             if (err) throw err;
             console.table("Successfully updated!");
             askQuestions();
         })
     } else {
-        connection.query('INSERT INTO employee (first_name, last_name, role_id) VALUES (?, ?, ?)', [result.firstName, result.lastName, result.roleId], function(err, data) {
+        connection.query('INSERT INTO employee (first_name, last_name, role_id) VALUES (?, ?, ?)', [response.firstName, response.lastName, response.roleId], function(err, data) {
             if (err) throw err;
             console.table("Successfully updated!");
             askQuestions();
@@ -140,8 +143,8 @@ function addDepartment() {
         type: "input",
         name: "department",
         message: "What is department do you want to add?"
-    }, ]).then(function(result) {
-        connection.query('INSERT INTO department (name) VALUES (?)', [result.department], function(err, data) {
+    }, ]).then(function(response) {
+        connection.query('INSERT INTO department (name) VALUES (?)', [response.department], function(err, data) {
             if (err) throw err;
             console.table("Successfully updated!");
             askQuestions();
@@ -166,7 +169,7 @@ function addRole() {
         }
     ]).then(function (response) {
         connection.query("INSERT INTO roles (title, salary, department_id) values (?, ?, ?)", [response.title, response.salary, response.department_id], function (err, data) {
-            viewEmployees();
+            console.table(data);
         })
         askQuestions();
     })
@@ -174,44 +177,63 @@ function addRole() {
 }
 
 function updateEmployeeRole() {
-    connection.query("SELECT * FROM employee", function(err, response) {
-        if (err) throw err;
-        var updateEmployee = response.map(function(employee) {
-            return employee.first_name + ' ' + employee.last_name
+    connection
+      .query("SELECT role.id, role.title FROM role", (err, response) => {
+        if (err) {
+          throw err;
+        }
+        const roles = response.map((row) => {
+          return {
+            name: row.title,
+            value: row.id,
+          };
         });
-
-        inquirer        
-            .prompt([
+        connection.query(
+          "SELECT CONCAT(employee.first_name, ' ', employee.last_name) AS currentEmployee, employee.id FROM employee",
+          (err, response) => {
+            if (err) {
+              throw err;
+            }
+            const employees = response.map((element) => {
+              return {
+                name: element.currentEmployee,
+                value: element.id,
+              };
+            });
+            inquirer
+              .prompt([
                 {
-                    type: "list",
-                    message: "Which employee would you like to update?",
-                    name: "employee",
-                    choices: updateEmployee
+                  type: "list",
+                  name: "employeeSelect",
+                  message: "Whose role would you like to update?",
+                  choices: employees,
                 },
                 {
-                    type: 'input',
-                    message: "What is the new role ID for the employee?",
-                    name: "roleId"
-                }
-            ]).then(function(response) {
-                var employeeName = response.employee.split(" ");
-
-                connection.query(`UPDATE employee SET role_id = ${response.role_id} WHERE (first_name = '${employeeName[0]}') AND (last_name = '${employeeName[1]}')`, 
-                    function(err, result) {
-                   if (err) throw err;
-                   viewEmployees();
-                })
-            })
-    })  
-}
-
-function viewRole() {
-    connection.query(
-        "SELECT first_name, last_name, title, salary FROM employee JOIN role ON role_id = role.id",
-        function (err, response) {
-            if (err) throw err;
-            console.table(response);
-            askQuestions();
-        }
-    )
-}
+                  type: "list",
+                  name: "roleSelect",
+                  message: "What is their new role?",
+                  choices: roles,
+                },
+              ])
+              .then((answers) => {
+                connection.query(
+                  "UPDATE employee SET employee.role_id = ? WHERE employee.id = ?;",
+                  [
+                    answers.roleSelect,
+                    answers.employeeSelect,
+                  ],
+                  (err, response) => {
+                    if (err) {
+                      throw err;
+                    }
+                    console.log(
+                    );
+                    askQuestions();
+                  }
+                );
+              });
+          }
+        );
+      });
+  }
+  
