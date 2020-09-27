@@ -1,16 +1,16 @@
-INSERT INTO department (name)
+INSERT INTO department (current_name)
 VALUES ("Human Resources");
-INSERT INTO department (name)
+INSERT INTO department (current_name)
 VALUES ("Sales");
-INSERT INTO department (name)
+INSERT INTO department (current_name)
 VALUES ("Marketing");
-INSERT INTO department (name)
+INSERT INTO department (current_name)
 VALUES ("Finances");
-INSERT INTO department (name)
+INSERT INTO department (current_name)
 VALUES ("Legal");
 
 -- Insert rows into table 'role'
-INSERT INTO role (title, salary, department_id)
+INSERT INTO current_role (title, salary, department_id)
 VALUES
 ( 
  "Lawyer", 160000, 5

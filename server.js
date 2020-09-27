@@ -91,7 +91,7 @@ function viewDepartments() {
 
 function viewRole() {
     connection.query(
-        "SELECT first_name, last_name, title, salary FROM employee JOIN role ON role_id = role.id",
+        "SELECT first_name, last_name, title, salary FROM employee JOIN current_role ON role_id = current_role.id",
         function (err, response) {
             if (err) throw err;
             console.table(response);
@@ -142,9 +142,9 @@ function addDepartment() {
     inquirer.prompt([{
         type: "input",
         name: "department",
-        message: "What is department do you want to add?"
+        message: "What department do you want to add?"
     }, ]).then(function(response) {
-        connection.query('INSERT INTO department (name) VALUES (?)', [response.department], function(err, data) {
+        connection.query('INSERT INTO department (current_name) VALUES (?)', [response.department], function(err, data) {
             if (err) throw err;
             console.table("Successfully updated!");
             askQuestions();
@@ -168,8 +168,7 @@ function addRole() {
             name: "department_id"
         }
     ]).then(function (response) {
-        connection.query("INSERT INTO roles (title, salary, department_id) values (?, ?, ?)", [response.title, response.salary, response.department_id], function (err, data) {
-            console.table(data);
+        connection.query("INSERT INTO current_role (title, salary, department_id) values (?, ?, ?)", [response.title, response.salary, response.department_id], function (err, data) {
         })
         askQuestions();
     })
@@ -178,7 +177,7 @@ function addRole() {
 
 function updateEmployeeRole() {
     connection
-      .query("SELECT role.id, role.title FROM role", (err, response) => {
+      .query("SELECT current_role.id, current_role.title FROM current_role", (err, response) => {
         if (err) {
           throw err;
         }
@@ -226,8 +225,6 @@ function updateEmployeeRole() {
                     if (err) {
                       throw err;
                     }
-                    console.log(
-                    );
                     askQuestions();
                   }
                 );
