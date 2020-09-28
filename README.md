@@ -1,7 +1,7 @@
 
 # Team Builder
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
-[App Photo](app_photo.png)
+[!App Photo](app_photo.png)
 
 ## Description 
 
@@ -9,8 +9,6 @@ This app allows business owners to view and manage the departments, roles, and e
 
 
 ## Table of Contents
-
-If your README is very long, add a table of contents to make it easy for users to find what they need.
 
 * [Installation](#installation)
 * [Usage](#usage)
