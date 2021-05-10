@@ -1,6 +1,5 @@
 
 # Team Builder
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 [!App Photo](app_photo.png)
 
 ## Description 
@@ -25,6 +24,16 @@ In the command line the user needs to type in "npm i" in order to install mysql 
 ## Usage 
 
 The app uses MySql databases to store and inquirer to gather company information based on the user's answers to the provided prompts. These prompts allows the suer to view/add departments, roles, and employees with a final prompt that allows for previously entered employee information to be updated al of which can be done through the command line. 
+
+
+## License
+  
+  
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
+  For more information on the license used, please click on the link below:
+
+- [License] (https://opensource.org/licenses/GPL-3.0)
 
 
 ## Contributing
